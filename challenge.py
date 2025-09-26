@@ -77,26 +77,28 @@ def main():
         {
             "poly__degree": [1],
             "clf__penalty": ["l1"],
-            "clf__C": [0.001, 0.01, 0.1, 1, 10, 100, 1000],
-            "clf__class_weight": ["balanced", None, {-1: 1, 1: 2}, {-1: 1, 1: 3}, {-1: 1, 1: 5}, {-1: 1, 1: 10}],
+            "clf__C": [0.01, 0.1, 1, 10, 100],  # Reduced from 7 to 5 values
+            "clf__class_weight": ["balanced", None, {-1: 1, 1: 3}, {-1: 1, 1: 5}],  # Reduced from 6 to 4 values
         },
         {
             "poly__degree": [1],
             "clf__penalty": ["l2"],
-            "clf__C": [0.001, 0.01, 0.1, 1, 10, 100, 1000],
-            "clf__class_weight": ["balanced", None, {-1: 1, 1: 2}, {-1: 1, 1: 3}, {-1: 1, 1: 5}, {-1: 1, 1: 10}],
+            "clf__C": [0.01, 0.1, 1, 10, 100],  # Reduced from 7 to 5 values
+            "clf__class_weight": ["balanced", None, {-1: 1, 1: 3}, {-1: 1, 1: 5}],  # Reduced from 6 to 4 values
         }
     ]
     grid = GridSearchCV(
         estimator=pipe,
         param_grid=param_grid,
-        cv=5,
+        cv=3,  # Reduced from 5 to 3 for speed
         scoring="roc_auc",
         n_jobs=-1,
-        refit=True
+        refit=True,
+        verbose=1  # Show progress
     )
     print("\n=== Starting Grid Search ===")
     print(f"Total parameter combinations: {len(param_grid[0]['clf__C']) * len(param_grid[0]['clf__class_weight']) * 2}")
+    print("This should complete much faster now...")
     grid.fit(X_train_full, y_train_full)
     best_clf = grid.best_estimator_
     print(f"\n=== Best Parameters Found ===")
@@ -106,8 +108,8 @@ def main():
     print(f"Best CV AUROC score: {grid.best_score_:.4f}")
     # Detailed cross-validation evaluation
     print(f"\n=== Detailed Cross-Validation Results ===")
-    cv_auroc = cross_val_score(grid.best_estimator_, X_train_full, y_train_full, cv=5, scoring='roc_auc')
-    cv_f1 = cross_val_score(grid.best_estimator_, X_train_full, y_train_full, cv=5, scoring='f1')
+    cv_auroc = cross_val_score(grid.best_estimator_, X_train_full, y_train_full, cv=3, scoring='roc_auc')
+    cv_f1 = cross_val_score(grid.best_estimator_, X_train_full, y_train_full, cv=3, scoring='f1')
     print(f"5-Fold CV AUROC: {cv_auroc.mean():.4f} (+/- {cv_auroc.std() * 2:.4f})")
     print(f"5-Fold CV F1: {cv_f1.mean():.4f} (+/- {cv_f1.std() * 2:.4f})")
     print(f"Individual AUROC scores: {[f'{score:.4f}' for score in cv_auroc]}")

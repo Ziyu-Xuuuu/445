@@ -132,21 +132,12 @@ def generate_feature_vector(df: pd.DataFrame) -> dict[str, float]:
                 feature_dict[f"max_{var}"] = var_data.max() if not var_data.empty else np.nan
                 feature_dict[f"min_{var}"] = var_data.min() if not var_data.empty else np.nan
                 feature_dict[f"mean_{var}"] = var_data.mean() if not var_data.empty else np.nan
-                feature_dict[f"std_{var}"] = var_data.std() if not var_data.empty else np.nan
-                feature_dict[f"median_{var}"] = var_data.median() if not var_data.empty else np.nan
-                feature_dict[f"count_{var}"] = len(var_data.dropna()) if not var_data.empty else 0
 
-                # Range and percentiles
+                # Range
                 if not var_data.empty and len(var_data.dropna()) > 1:
                     feature_dict[f"range_{var}"] = var_data.max() - var_data.min()
-                    feature_dict[f"q75_{var}"] = var_data.quantile(0.75)
-                    feature_dict[f"q25_{var}"] = var_data.quantile(0.25)
-                    feature_dict[f"iqr_{var}"] = var_data.quantile(0.75) - var_data.quantile(0.25)
                 else:
                     feature_dict[f"range_{var}"] = np.nan
-                    feature_dict[f"q75_{var}"] = np.nan
-                    feature_dict[f"q25_{var}"] = np.nan
-                    feature_dict[f"iqr_{var}"] = np.nan
 
                 # Time window features (0-24h and 24-48h)
                 vals_0_24 = ts_filtered[(ts_filtered["Variable"] == var) & (ts_filtered["Hour"] < 24)]["Value"]
@@ -155,12 +146,10 @@ def generate_feature_vector(df: pd.DataFrame) -> dict[str, float]:
                 # Early period (0-24h)
                 feature_dict[f"max_{var}_0_24"] = vals_0_24.max() if not vals_0_24.empty else np.nan
                 feature_dict[f"mean_{var}_0_24"] = vals_0_24.mean() if not vals_0_24.empty else np.nan
-                feature_dict[f"count_{var}_0_24"] = len(vals_0_24.dropna()) if not vals_0_24.empty else 0
 
                 # Late period (24-48h)
                 feature_dict[f"max_{var}_24_48"] = vals_24_48.max() if not vals_24_48.empty else np.nan
                 feature_dict[f"mean_{var}_24_48"] = vals_24_48.mean() if not vals_24_48.empty else np.nan
-                feature_dict[f"count_{var}_24_48"] = len(vals_24_48.dropna()) if not vals_24_48.empty else 0
 
                 # Trend features (late vs early)
                 if not vals_0_24.empty and not vals_24_48.empty:
@@ -174,24 +163,16 @@ def generate_feature_vector(df: pd.DataFrame) -> dict[str, float]:
                     feature_dict[f"trend_{var}"] = np.nan
 
         else:
-            # Empty case - set all features to NaN or 0 for counts
+            # Empty case - set all features to NaN
             for var in timeseries_variables:
                 feature_dict[f"max_{var}"] = np.nan
                 feature_dict[f"min_{var}"] = np.nan
                 feature_dict[f"mean_{var}"] = np.nan
-                feature_dict[f"std_{var}"] = np.nan
-                feature_dict[f"median_{var}"] = np.nan
-                feature_dict[f"count_{var}"] = 0
                 feature_dict[f"range_{var}"] = np.nan
-                feature_dict[f"q75_{var}"] = np.nan
-                feature_dict[f"q25_{var}"] = np.nan
-                feature_dict[f"iqr_{var}"] = np.nan
                 feature_dict[f"max_{var}_0_24"] = np.nan
                 feature_dict[f"mean_{var}_0_24"] = np.nan
-                feature_dict[f"count_{var}_0_24"] = 0
                 feature_dict[f"max_{var}_24_48"] = np.nan
                 feature_dict[f"mean_{var}_24_48"] = np.nan
-                feature_dict[f"count_{var}_24_48"] = 0
                 feature_dict[f"trend_{var}"] = np.nan
     else:
         # No timeseries data case
@@ -199,19 +180,11 @@ def generate_feature_vector(df: pd.DataFrame) -> dict[str, float]:
             feature_dict[f"max_{var}"] = np.nan
             feature_dict[f"min_{var}"] = np.nan
             feature_dict[f"mean_{var}"] = np.nan
-            feature_dict[f"std_{var}"] = np.nan
-            feature_dict[f"median_{var}"] = np.nan
-            feature_dict[f"count_{var}"] = 0
             feature_dict[f"range_{var}"] = np.nan
-            feature_dict[f"q75_{var}"] = np.nan
-            feature_dict[f"q25_{var}"] = np.nan
-            feature_dict[f"iqr_{var}"] = np.nan
             feature_dict[f"max_{var}_0_24"] = np.nan
             feature_dict[f"mean_{var}_0_24"] = np.nan
-            feature_dict[f"count_{var}_0_24"] = 0
             feature_dict[f"max_{var}_24_48"] = np.nan
             feature_dict[f"mean_{var}_24_48"] = np.nan
-            feature_dict[f"count_{var}_24_48"] = 0
             feature_dict[f"trend_{var}"] = np.nan
 
     return feature_dict
